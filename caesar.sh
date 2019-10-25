@@ -100,7 +100,7 @@ caesar_add() {
   echo ""
   CONTENT="$CONTENT""$1:$username:$password"
   
-  echo -e $CONTENT | openssl enc -base64 -des -nosalt -out $PASS_FILE
+  echo -e "$CONTENT" | openssl enc -base64 -des -nosalt -out $PASS_FILE
 }
 
 caesar_show() {
