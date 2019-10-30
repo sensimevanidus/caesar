@@ -7,8 +7,8 @@ CAESAR - Store your passwords in an encrypted way.
 --------------------------------------------------------------------------------
 
 Usage: ./caesar.sh add <provider> && ./caesar.sh show <provider> <user>
-Example: ./caesar add gmail && ./caesar show gmail onuryaman@gmail.com
-
+Example: ./caesar add gmail && ./caesar show gmail onuryaman@gmail.com &&
+         ./caesar update gmail
 Options:
   -h, --help    output program instructions
   -v, --version output program version
