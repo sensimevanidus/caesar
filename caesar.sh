@@ -3,7 +3,7 @@
 # -- ABOUT THIS PROGRAM: ------------------------------------------------------
 #
 # Author:      Onur Yaman <onuryaman@gmail.com>
-# Version:     0.1.0
+# Version:     0.2.0
 # Description: Allows you to store your passwords in an encrypted way.
 # Source:      N/A
 #
@@ -12,6 +12,7 @@
 # Execute:
 #   $ chmod u+x caesar.sh && ./caesar.sh add <provider>
 #   $ ./caesar.sh show <provider> <username>
+#   $ ./caesar.sh update <provider>
 #
 # Options:
 #   -h, --help    output program instructions
@@ -23,6 +24,7 @@
 # Examples:
 #   caesar add gmail
 #   caesar show gmail onuryaman@gmail.com
+#   caesar update gmail
 #
 # Important:
 #   Note that you're gonna need a password that you shouldn't forget in order to
@@ -33,7 +35,12 @@
 #
 # -- CHANGELOG: ----------------------------------------------------------------
 #
-#   DESCRIPTION:
+#   DESCRIPTION: Allow credentials to be updated
+#   VERSION:     0.2.0
+#   DATE:        2019-10-30
+#   AUTHOR:      Onur Yaman <onuryaman@gmail.com>
+#
+#   DESCRIPTION: Create the script
 #   VERSION:     0.1.0
 #   DATE:        2019-10-25
 #   AUTHOR:      Onur Yaman <onuryaman@gmail.com>
@@ -43,10 +50,12 @@
 #   - Use a stronger encryption algorithm to secure credentials file.
 #   - Fix: If the password file is broken, it's not possible to recover it.
 #   Make sure that it doesn't get broken when invalid password is provided.
+#   - Add option to delete credentials
+#   - Fix: Reject empty inputs for providers
 #
 # ------------------------------------------------------------------------------
 
-VERSION="0.1.0"
+VERSION="0.2.0"
 PROGRAM="caesar"
 
 caesar_help() {
@@ -54,20 +63,17 @@ cat <<EOT
 --------------------------------------------------------------------------------
 CAESAR - Store your passwords in an encrypted way.
 --------------------------------------------------------------------------------
-
 Usage: ./caesar.sh add <provider> && ./caesar.sh show <provider> <user>
-Example: ./caesar add gmail && ./caesar show gmail onuryaman@gmail.com
-
+Example: ./caesar add gmail && ./caesar show gmail onuryaman@gmail.com &&
+         ./caesar update gmail
 Options:
   -h, --help    output program instructions
   -v, --version output program version
-
 Important:
   Note that you're gonna need a password that you shouldn't forget in order to
   add/show data.
   The credentials are stored in a file under ~/.caesar/passwd in an encrypted
   way.
-
 EOT
 }
 
@@ -92,15 +98,33 @@ caesar_add() {
     CONTENT=`cat $PASS_FILE | openssl enc -d -base64 -des -nosalt`
     CONTENT="$CONTENT\r\n"
   fi
-  
+
   printf "Username: "
   read username
   printf "Password: "
   read -s password
   echo ""
   CONTENT="$CONTENT""$1:$username:$password"
-  
+
   echo -e "$CONTENT" | openssl enc -base64 -des -nosalt -out $PASS_FILE
+}
+
+caesar_update() {
+    caesar_init
+
+    if [ -f $PASS_FILE ]; then
+      printf "Provider: "
+      read provider
+      printf "Username: "
+      read username
+      printf "Password: "
+      read -s password
+      echo ""
+      CONTENT=`cat $PASS_FILE | openssl enc -d -base64 -des -nosalt | grep -v "$1:$username"`
+      CONTENT="$CONTENT\r\n""$provider:$username:$password"
+
+      echo -e "$CONTENT" | openssl enc -base64 -des -nosalt -out $PASS_FILE
+    fi
 }
 
 caesar_show() {
@@ -136,6 +160,9 @@ main() {
     exit
   elif [ "${1}" = "-s" -o "${1}" = "show" ]; then
     caesar_show "$2"
+    exit
+  elif [ "${1}" = "-u" -o "${1}" = "update" ]; then
+    caesar_update "$2"
     exit
   else
     caesar_help
